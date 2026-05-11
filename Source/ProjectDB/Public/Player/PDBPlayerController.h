@@ -7,6 +7,7 @@
 class UInputAction;
 class UInputMappingContext;
 class USplineComponent;
+class IPDBEnemyInterface;
 
 UCLASS()
 class PROJECTDB_API APDBPlayerController : public APlayerController
@@ -45,4 +46,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USplineComponent> Spline;
+
+	IPDBEnemyInterface* LastActor = nullptr;
+	IPDBEnemyInterface* ThisActor = nullptr;
 };

@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "Interaction/PDBEnemyInterface.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
 
@@ -55,6 +56,26 @@ void APDBPlayerController::PlayerTick(float DeltaTime)
 void APDBPlayerController::CursorTrace()
 {
 	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
+	if (!CursorHit.bBlockingHit) return;
+	
+	LastActor = ThisActor;
+	ThisActor = Cast<IPDBEnemyInterface>(CursorHit.GetActor());
+	
+	if (LastActor == nullptr)
+	{
+		if (ThisActor != nullptr)
+			ThisActor->HighlightActor();
+	}
+	else
+	{
+		if (ThisActor == nullptr)
+			LastActor->UnHighlightActor();
+		else if (LastActor != ThisActor)
+		{
+			LastActor->UnHighlightActor();
+			ThisActor->HighlightActor();
+		}
+	}
 }
 
 void APDBPlayerController::OnInputPressed()
