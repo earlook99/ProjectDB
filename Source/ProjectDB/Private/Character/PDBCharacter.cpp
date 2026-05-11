@@ -6,8 +6,6 @@
 
 APDBCharacter::APDBCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = 800.f;

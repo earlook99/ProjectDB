@@ -1,14 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "Character/PDBCharacterBase.h"
 #include "PDBCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 
 UCLASS()
-class PROJECTDB_API APDBCharacter : public ACharacter
+class PROJECTDB_API APDBCharacter : public APDBCharacterBase
 {
 	GENERATED_BODY()
 
