@@ -2,26 +2,24 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
-#include "GameFramework/Character.h"
-#include "PDBCharacterBase.generated.h"
+#include "GameFramework/PlayerState.h"
+#include "PDBPlayerState.generated.h"
 
 class UAbilitySystemComponent;
 class UAttributeSet;
 
-UCLASS(Abstract)
-class PROJECTDB_API APDBCharacterBase : public ACharacter, public IAbilitySystemInterface
+UCLASS()
+class PROJECTDB_API APDBPlayerState : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
-	APDBCharacterBase();
+	APDBPlayerState();
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 protected:
-	virtual void BeginPlay() override;
-
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 

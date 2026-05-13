@@ -1,8 +1,10 @@
 #include "Character/PDBCharacter.h"
 
+#include "AbilitySystem/PDBAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Player/PDBPlayerState.h"
 
 APDBCharacter::APDBCharacter()
 {
@@ -27,4 +29,31 @@ APDBCharacter::APDBCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+}
+
+void APDBCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	// Init Ability Actor Info for the server.
+	InitAbilityActorInfo();
+}
+
+void APDBCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// Init Ability Actor Info for the client.
+	InitAbilityActorInfo();
+}
+
+void APDBCharacter::InitAbilityActorInfo()
+{
+	APDBPlayerState* PS = GetPlayerState<APDBPlayerState>();
+	check(PS);
+
+	AbilitySystemComponent = PS->GetAbilitySystemComponent();
+	AttributeSet = PS->GetAttributeSet();
+
+	AbilitySystemComponent->InitAbilityActorInfo(PS, this);
 }
