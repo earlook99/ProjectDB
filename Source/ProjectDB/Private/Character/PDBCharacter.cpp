@@ -4,7 +4,9 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Player/PDBPlayerController.h"
 #include "Player/PDBPlayerState.h"
+#include "UI/HUD/PDBHUD.h"
 
 APDBCharacter::APDBCharacter()
 {
@@ -56,4 +58,12 @@ void APDBCharacter::InitAbilityActorInfo()
 	AttributeSet = PS->GetAttributeSet();
 
 	AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+
+	if (APDBPlayerController* PC = Cast<APDBPlayerController>(GetController()))
+	{
+		if (APDBHUD* HUD = Cast<APDBHUD>(PC->GetHUD()))
+		{
+			HUD->InitOverlay(PC, PS, AbilitySystemComponent, AttributeSet);
+		}
+	}
 }
