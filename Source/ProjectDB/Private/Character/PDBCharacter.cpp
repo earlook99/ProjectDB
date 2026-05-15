@@ -1,6 +1,7 @@
 #include "Character/PDBCharacter.h"
 
 #include "AbilitySystem/PDBAbilitySystemComponent.h"
+#include "AbilitySystem/PDBAbilitySystemLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -59,6 +60,10 @@ void APDBCharacter::InitAbilityActorInfo()
 
 	AbilitySystemComponent->InitAbilityActorInfo(PS, this);
 
+	// GE 체인으로 어트리뷰트를 먼저 채워야 BroadcastInitialValues가 실제 값을 발사함.
+	// 순서 거꾸로면 HUD가 어트리뷰트 0을 브로드캐스트해 BP 측 0/0 divide-by-zero 발생.
+	InitializeDefaultAttributes();
+
 	if (APDBPlayerController* PC = Cast<APDBPlayerController>(GetController()))
 	{
 		if (APDBHUD* HUD = Cast<APDBHUD>(PC->GetHUD()))
@@ -66,4 +71,14 @@ void APDBCharacter::InitAbilityActorInfo()
 			HUD->InitOverlay(PC, PS, AbilitySystemComponent, AttributeSet);
 		}
 	}
+}
+
+void APDBCharacter::InitializeDefaultAttributes() const
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	UPDBAbilitySystemLibrary::InitializeDefaultAttributes(this, AbilitySystemComponent);
 }

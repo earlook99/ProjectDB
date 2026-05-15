@@ -20,6 +20,7 @@ public:
 
 private:
 	void InitAbilityActorInfo();
+	void InitializeDefaultAttributes() const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
