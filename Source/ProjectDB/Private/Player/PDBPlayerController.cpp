@@ -4,11 +4,14 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Pawn.h"
+#include "Input/PDBInputComponent.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "Interaction/PDBEnemyInterface.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
+#include "AbilitySystem/PDBAbilitySystemComponent.h"
+#include "Player/PDBPlayerState.h"
 
 APDBPlayerController::APDBPlayerController()
 {
@@ -39,11 +42,19 @@ void APDBPlayerController::BeginPlay()
 void APDBPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(InputComponent);
+	UPDBInputComponent* PIC = CastChecked<UPDBInputComponent>(InputComponent);
 
-	EIC->BindAction(ClickAction, ETriggerEvent::Started, this, &APDBPlayerController::OnInputPressed);
-	EIC->BindAction(ClickAction, ETriggerEvent::Triggered, this, &APDBPlayerController::OnInputHeld);
-	EIC->BindAction(ClickAction, ETriggerEvent::Completed, this, &APDBPlayerController::OnInputReleased);
+	PIC->BindAction(ClickAction, ETriggerEvent::Started, this, &APDBPlayerController::OnInputPressed);
+	PIC->BindAction(ClickAction, ETriggerEvent::Triggered, this, &APDBPlayerController::OnInputHeld);
+	PIC->BindAction(ClickAction, ETriggerEvent::Completed, this, &APDBPlayerController::OnInputReleased);
+	
+	PIC->BindAbilityActions(
+		InputConfig, 
+		this, 
+		&APDBPlayerController::AbilityInputTagPressed,
+		&APDBPlayerController::AbilityInputTagHeld,
+		&APDBPlayerController::AbilityInputTagReleased
+		);
 }
 
 void APDBPlayerController::PlayerTick(float DeltaTime)
@@ -53,14 +64,52 @@ void APDBPlayerController::PlayerTick(float DeltaTime)
 	if (bAutoRunning) AutoRun();
 }
 
+UPDBAbilitySystemComponent* APDBPlayerController::GetPDBAbilitySystemComponent()
+{
+	if (!AbilitySystemComponent)
+	{
+		APDBPlayerState* PS = GetPlayerState<APDBPlayerState>();
+		if (PS)
+		{
+			AbilitySystemComponent = Cast<UPDBAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+		}
+	}
+	
+	return AbilitySystemComponent;
+}
+
+void APDBPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
+{
+	UPDBAbilitySystemComponent* ASC = GetPDBAbilitySystemComponent();
+	if (!ASC) return;
+	
+	ASC->AbilityInputTagPressed(InputTag);
+}
+
+void APDBPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
+{
+	UPDBAbilitySystemComponent* ASC = GetPDBAbilitySystemComponent();
+	if (!ASC) return;
+	
+	ASC->AbilityInputTagHeld(InputTag);
+}
+
+void APDBPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
+{
+	UPDBAbilitySystemComponent* ASC = GetPDBAbilitySystemComponent();
+	if (!ASC) return;
+	
+	ASC->AbilityInputTagReleased(InputTag);
+}
+
 void APDBPlayerController::CursorTrace()
 {
 	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
 	if (!CursorHit.bBlockingHit) return;
-	
+
 	LastActor = ThisActor;
 	ThisActor = Cast<IPDBEnemyInterface>(CursorHit.GetActor());
-	
+
 	if (LastActor == nullptr)
 	{
 		if (ThisActor != nullptr)
@@ -87,7 +136,7 @@ void APDBPlayerController::OnInputPressed()
 void APDBPlayerController::OnInputHeld()
 {
 	FollowTime += GetWorld()->GetDeltaSeconds();
-	
+
 	if (CursorHit.bBlockingHit)
 	{
 		CachedDestination = CursorHit.ImpactPoint;
@@ -105,22 +154,22 @@ void APDBPlayerController::OnInputReleased()
 	{
 		UNavigationPath* NavigationPath = UNavigationSystemV1::FindPathToLocationSynchronously(
 			GetWorld(), GetPawn()->GetActorLocation(), CachedDestination);
-		
+
 		if (NavigationPath && NavigationPath->PathPoints.Num() > 0)
 		{
 			Spline->ClearSplinePoints();
-			
+
 			for (const FVector& Point : NavigationPath->PathPoints)
 			{
 				Spline->AddSplinePoint(Point, ESplineCoordinateSpace::World);
 			}
-			
+
 			CachedDestination = NavigationPath->PathPoints.Last();
-			
+
 			bAutoRunning = true;
 		}
 	}
-	
+
 	FollowTime = 0.f;
 }
 
@@ -128,12 +177,12 @@ void APDBPlayerController::AutoRun()
 {
 	APawn* ControlledPawn = GetPawn();
 	if (!ControlledPawn) return;
-	
+
 	FVector LocationOnSpline = Spline->FindLocationClosestToWorldLocation(ControlledPawn->GetActorLocation(), ESplineCoordinateSpace::World);
 	FVector Direction = Spline->FindDirectionClosestToWorldLocation(LocationOnSpline, ESplineCoordinateSpace::World);
-	
+
 	ControlledPawn->AddMovementInput(Direction);
-	
+
 	float DistanceToDestination = FVector::Dist(LocationOnSpline, CachedDestination);
 	if (DistanceToDestination <= AutoRunAcceptanceRadius)
 	{

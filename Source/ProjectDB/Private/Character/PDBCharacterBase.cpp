@@ -5,7 +5,7 @@ APDBCharacterBase::APDBCharacterBase()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-UAbilitySystemComponent* APDBCharacterBase::GetAbilitySystemComponent() const
+UPDBAbilitySystemComponent* APDBCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }

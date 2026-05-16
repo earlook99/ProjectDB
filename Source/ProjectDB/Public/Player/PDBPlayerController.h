@@ -2,8 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "GameplayTagContainer.h"
 #include "PDBPlayerController.generated.h"
 
+class UPDBAbilitySystemComponent;
+class UPDBInputConfig;
 class UInputAction;
 class UInputMappingContext;
 class USplineComponent;
@@ -18,16 +21,28 @@ public:
 	APDBPlayerController();
 
 	virtual void PlayerTick(float DeltaTime) override;
+	
+	UPDBAbilitySystemComponent* GetPDBAbilitySystemComponent();
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
+	
+	void AbilityInputTagPressed(FGameplayTag InputTag);
+	void AbilityInputTagHeld(FGameplayTag InputTag);
+	void AbilityInputTagReleased(FGameplayTag InputTag);
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> ClickAction;
+	
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UPDBInputConfig> InputConfig;
+	
+	UPROPERTY()
+	TObjectPtr<UPDBAbilitySystemComponent> AbilitySystemComponent;
 
 	void OnInputPressed();
 	void OnInputHeld();

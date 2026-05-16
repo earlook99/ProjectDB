@@ -55,13 +55,12 @@ void APDBCharacter::InitAbilityActorInfo()
 	APDBPlayerState* PS = GetPlayerState<APDBPlayerState>();
 	check(PS);
 
-	AbilitySystemComponent = PS->GetAbilitySystemComponent();
+	AbilitySystemComponent = Cast<UPDBAbilitySystemComponent>(PS->GetAbilitySystemComponent());
 	AttributeSet = PS->GetAttributeSet();
 
 	AbilitySystemComponent->InitAbilityActorInfo(PS, this);
-
-	// GE 체인으로 어트리뷰트를 먼저 채워야 BroadcastInitialValues가 실제 값을 발사함.
-	// 순서 거꾸로면 HUD가 어트리뷰트 0을 브로드캐스트해 BP 측 0/0 divide-by-zero 발생.
+	AbilitySystemComponent->AddCharacterAbilities(StartupAbilities);
+	
 	InitializeDefaultAttributes();
 
 	if (APDBPlayerController* PC = Cast<APDBPlayerController>(GetController()))

@@ -3,10 +3,13 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
+#include "AbilitySystem/PDBAbilitySystemComponent.h"
 #include "PDBCharacterBase.generated.h"
 
+class UPDBGameplayAbility;
 class UAbilitySystemComponent;
 class UAttributeSet;
+class UGameplayAbility;
 
 UCLASS(Abstract)
 class PROJECTDB_API APDBCharacterBase : public ACharacter, public IAbilitySystemInterface
@@ -16,15 +19,18 @@ class PROJECTDB_API APDBCharacterBase : public ACharacter, public IAbilitySystem
 public:
 	APDBCharacterBase();
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	virtual UPDBAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY()
-	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UPDBAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TArray<TSubclassOf<UPDBGameplayAbility>> StartupAbilities;
 };
