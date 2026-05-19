@@ -11,6 +11,7 @@
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
 #include "AbilitySystem/PDBAbilitySystemComponent.h"
+#include "GameplayTags/PDBGameplayTags.h"
 #include "Player/PDBPlayerState.h"
 
 APDBPlayerController::APDBPlayerController()
@@ -135,6 +136,8 @@ void APDBPlayerController::OnInputPressed()
 
 void APDBPlayerController::OnInputHeld()
 {
+	if (IsMovementBlocked()) return;
+	
 	FollowTime += GetWorld()->GetDeltaSeconds();
 
 	if (CursorHit.bBlockingHit)
@@ -150,6 +153,8 @@ void APDBPlayerController::OnInputHeld()
 
 void APDBPlayerController::OnInputReleased()
 {
+	if (IsMovementBlocked()) return;
+	
 	if (FollowTime <= ShortPressThreshold)
 	{
 		UNavigationPath* NavigationPath = UNavigationSystemV1::FindPathToLocationSynchronously(
@@ -175,6 +180,8 @@ void APDBPlayerController::OnInputReleased()
 
 void APDBPlayerController::AutoRun()
 {
+	if (IsMovementBlocked()) return;
+	
 	APawn* ControlledPawn = GetPawn();
 	if (!ControlledPawn) return;
 
@@ -188,4 +195,10 @@ void APDBPlayerController::AutoRun()
 	{
 		bAutoRunning = false;
 	}
+}
+
+bool APDBPlayerController::IsMovementBlocked()
+{
+	if (!GetPDBAbilitySystemComponent()) return false;
+	return GetPDBAbilitySystemComponent()->HasMatchingGameplayTag(FPDBGameplayTags::Get().State_Block_Movement);
 }

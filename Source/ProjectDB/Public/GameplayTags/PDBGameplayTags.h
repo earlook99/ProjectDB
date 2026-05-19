@@ -18,6 +18,8 @@ public:
 	FGameplayTag InputTag_W;
 	FGameplayTag InputTag_E;
 	FGameplayTag InputTag_R;
+
+	FGameplayTag State_Block_Movement;
 	
 private:
 	static FPDBGameplayTags GameplayTags;

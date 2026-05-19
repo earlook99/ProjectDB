@@ -22,4 +22,9 @@ void FPDBGameplayTags::InitializeNativeGameplayTags()
 		FName("InputTag.R"),
 		FString("R")
 	);
+
+	GameplayTags.State_Block_Movement = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Block.Movement"),
+		FString("Cannot move while ability is active")
+	);
 }

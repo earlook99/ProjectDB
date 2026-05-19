@@ -41,6 +41,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UPDBInputConfig> InputConfig;
 	
+private:
 	UPROPERTY()
 	TObjectPtr<UPDBAbilitySystemComponent> AbilitySystemComponent;
 
@@ -50,6 +51,8 @@ protected:
 
 	void CursorTrace();
 	void AutoRun();
+	
+	bool IsMovementBlocked();
 
 	FHitResult CursorHit;
 
