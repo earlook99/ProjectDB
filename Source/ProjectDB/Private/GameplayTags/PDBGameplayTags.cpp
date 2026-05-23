@@ -27,4 +27,9 @@ void FPDBGameplayTags::InitializeNativeGameplayTags()
 		FName("State.Block.Movement"),
 		FString("Cannot move while ability is active")
 	);
+	
+	GameplayTags.GameplayCue_SoulSiphon_Cast = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("GameplayCue.SoulSiphon.Cast"),
+		FString("Casting SoulSiphon")
+		);
 }

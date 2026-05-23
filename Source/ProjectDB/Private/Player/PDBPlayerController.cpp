@@ -180,7 +180,11 @@ void APDBPlayerController::OnInputReleased()
 
 void APDBPlayerController::AutoRun()
 {
-	if (IsMovementBlocked()) return;
+	if (IsMovementBlocked())
+	{
+		bAutoRunning = false;
+		return;
+	}
 	
 	APawn* ControlledPawn = GetPawn();
 	if (!ControlledPawn) return;

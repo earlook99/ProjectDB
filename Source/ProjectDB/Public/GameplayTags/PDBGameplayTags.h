@@ -21,6 +21,8 @@ public:
 
 	FGameplayTag State_Block_Movement;
 	
+	FGameplayTag GameplayCue_SoulSiphon_Cast;
+	
 private:
 	static FPDBGameplayTags GameplayTags;
 };
