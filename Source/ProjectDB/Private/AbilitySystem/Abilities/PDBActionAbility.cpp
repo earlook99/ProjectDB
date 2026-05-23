@@ -45,8 +45,12 @@ void UPDBActionAbility::OnGameplayEventReceived(FGameplayEventData Payload)
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
 	if (!SourceASC) return;
 	
+	// TODO[리팩터]: 데이터 드리븐으로 교체
+	//   1) GatherConeTargets(TargetActors)  →  Container->TargetType->ResolveTargets(Source, <캐싱한 HitResult>, TargetActors)
+	//   2) 아래 하드코딩 ExecuteGameplayCue(SoulSiphon_Cast) 제거 → 큐는 다음 단계에서 컨테이너 데이터로
+	//   3) 아래 UE_LOG("Damaged!") 제거
 	SourceASC->ExecuteGameplayCue(FPDBGameplayTags::Get().GameplayCue_SoulSiphon_Cast);
-	
+
 	TArray<AActor*> TargetActors;
 	GatherConeTargets(TargetActors);
 	
@@ -129,6 +133,8 @@ void UPDBActionAbility::OnTargetDataReady(const FGameplayAbilityTargetDataHandle
 	
 	if (!TargetData->HasHitResult()) return;
 	const FHitResult* HitResult = TargetData->GetHitResult();
+
+	// TODO: 이 HitResult를 멤버에 캐싱 — 회전에만 쓰고 버리지 말 것. 이벤트 시점 Sphere가 ImpactPoint를 쓴다.
 
 	AActor* Avatar = GetAvatarActorFromActorInfo();
 	if (!Avatar) return;
