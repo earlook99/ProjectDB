@@ -5,8 +5,8 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "AbilitySystem/AbilityTasks/PDBTargetDataUnderCursor.h"
+#include "AbilitySystem/TargetType/PDBTargetType.h"
 #include "Character/PDBCharacterBase.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 UPDBActionAbility::UPDBActionAbility()
 {
@@ -45,14 +45,13 @@ void UPDBActionAbility::OnGameplayEventReceived(FGameplayEventData Payload)
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
 	if (!SourceASC) return;
 	
-	// TODO[리팩터]: 데이터 드리븐으로 교체
-	//   1) GatherConeTargets(TargetActors)  →  Container->TargetType->ResolveTargets(Source, <캐싱한 HitResult>, TargetActors)
-	//   2) 아래 하드코딩 ExecuteGameplayCue(SoulSiphon_Cast) 제거 → 큐는 다음 단계에서 컨테이너 데이터로
-	//   3) 아래 UE_LOG("Damaged!") 제거
-	SourceASC->ExecuteGameplayCue(FPDBGameplayTags::Get().GameplayCue_SoulSiphon_Cast);
-
+	UPDBTargetType* TargetType = Container->TargetType;
+	if (!TargetType) return;
+	
+	SourceASC->ExecuteGameplayCue(CastCueTag);
+	
 	TArray<AActor*> TargetActors;
-	GatherConeTargets(TargetActors);
+	TargetType->ResolveTargets(GetAvatarActorFromActorInfo(), CursorHit, TargetActors);
 	
 	for (TSubclassOf<UGameplayEffect> EffectClass : Container->EffectClasses)
 	{
@@ -65,48 +64,6 @@ void UPDBActionAbility::OnGameplayEventReceived(FGameplayEventData Payload)
 		
 			SourceASC->ApplyGameplayEffectSpecToTarget(*Handle.Data.Get(), TargetASC);
 			UE_LOG(LogTemp, Display, TEXT("Damaged!"));
-		}
-	}
-}
-
-void UPDBActionAbility::GatherConeTargets(TArray<AActor*>& OutActors) const
-{
-	AActor* SourceActor = GetAvatarActorFromActorInfo();
-	if (!SourceActor) return;
-	
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
-	
-	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(SourceActor);
-	
-	TArray<AActor*> OverlappedActors;
-	
-	UClass* ActorFilter = APDBCharacterBase::StaticClass();
-	
-	UKismetSystemLibrary::SphereOverlapActors(
-		GetWorld(), 
-		SourceActor->GetActorLocation(), 
-		ConeRadius, 
-		ObjectTypes,
-		ActorFilter,
-		ActorsToIgnore,
-		OverlappedActors
-		);
-	
-	for (AActor* Actor : OverlappedActors)
-	{
-		FVector Delta = Actor->GetActorLocation() - SourceActor->GetActorLocation();
-		Delta.Z = 0.f;
-		FVector Direction = Delta.GetSafeNormal();
-		
-		FVector Forward = SourceActor->GetActorForwardVector();
-		Forward.Z = 0.f;
-		FVector ForwardVector = Forward.GetSafeNormal();
-		
-		if (FMath::Cos(FMath::DegreesToRadians(ConeHalfAngle)) <= FVector::DotProduct(Direction, ForwardVector))
-		{
-			OutActors.Add(Actor);
 		}
 	}
 }
@@ -133,8 +90,7 @@ void UPDBActionAbility::OnTargetDataReady(const FGameplayAbilityTargetDataHandle
 	
 	if (!TargetData->HasHitResult()) return;
 	const FHitResult* HitResult = TargetData->GetHitResult();
-
-	// TODO: 이 HitResult를 멤버에 캐싱 — 회전에만 쓰고 버리지 말 것. 이벤트 시점 Sphere가 ImpactPoint를 쓴다.
+	CursorHit = *HitResult;
 
 	AActor* Avatar = GetAvatarActorFromActorInfo();
 	if (!Avatar) return;
