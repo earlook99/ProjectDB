@@ -44,10 +44,6 @@ void APDBPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 	UPDBInputComponent* PIC = CastChecked<UPDBInputComponent>(InputComponent);
-
-	PIC->BindAction(ClickAction, ETriggerEvent::Started, this, &APDBPlayerController::OnInputPressed);
-	PIC->BindAction(ClickAction, ETriggerEvent::Triggered, this, &APDBPlayerController::OnInputHeld);
-	PIC->BindAction(ClickAction, ETriggerEvent::Completed, this, &APDBPlayerController::OnInputReleased);
 	
 	PIC->BindAbilityActions(
 		InputConfig, 
@@ -62,7 +58,9 @@ void APDBPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
 	CursorTrace();
-	if (bAutoRunning) AutoRun();
+	
+	if (TargetActor.IsValid()) ChaseAndAutoAttack();
+	else if (bAutoRunning) AutoRun();
 }
 
 UPDBAbilitySystemComponent* APDBPlayerController::GetPDBAbilitySystemComponent()
@@ -81,26 +79,90 @@ UPDBAbilitySystemComponent* APDBPlayerController::GetPDBAbilitySystemComponent()
 
 void APDBPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
-	UPDBAbilitySystemComponent* ASC = GetPDBAbilitySystemComponent();
-	if (!ASC) return;
-	
-	ASC->AbilityInputTagPressed(InputTag);
+	if (!InputTag.MatchesTagExact(FPDBGameplayTags::Get().InputTag_LMB))
+	{
+		UPDBAbilitySystemComponent* ASC = GetPDBAbilitySystemComponent();                                                                 
+		if (!ASC) return;                                               
+		ASC->AbilityInputTagPressed(InputTag);
+	}
+	else
+	{
+		FollowTime = 0.f;
+		bAutoRunning = false;
+		
+		if (ThisActor)
+		{
+			TargetActor = CursorHit.GetActor();
+		}
+		else
+		{
+			TargetActor = nullptr;
+		}
+	}
 }
 
 void APDBPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
-	UPDBAbilitySystemComponent* ASC = GetPDBAbilitySystemComponent();
-	if (!ASC) return;
-	
-	ASC->AbilityInputTagHeld(InputTag);
+	if (!InputTag.MatchesTagExact(FPDBGameplayTags::Get().InputTag_LMB))
+	{
+		UPDBAbilitySystemComponent* ASC = GetPDBAbilitySystemComponent();                                                                 
+		if (!ASC) return;                                               
+		ASC->AbilityInputTagHeld(InputTag);
+	}
+	else
+	{
+		if (TargetActor.IsValid()) return;
+		if (IsMovementBlocked()) return;
+
+		FollowTime += GetWorld()->GetDeltaSeconds();
+
+		if (CursorHit.bBlockingHit)
+		{
+			CachedDestination = CursorHit.ImpactPoint;
+			if (APawn* ControlledPawn = GetPawn())
+			{
+				const FVector WorldDir = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
+				ControlledPawn->AddMovementInput(WorldDir);
+			}
+		}
+	}
 }
 
 void APDBPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	UPDBAbilitySystemComponent* ASC = GetPDBAbilitySystemComponent();
-	if (!ASC) return;
+	if (!InputTag.MatchesTagExact(FPDBGameplayTags::Get().InputTag_LMB))
+	{
+		UPDBAbilitySystemComponent* ASC = GetPDBAbilitySystemComponent();                                                                 
+		if (!ASC) return;                                               
+		ASC->AbilityInputTagReleased(InputTag);
+	}
+	else
+	{
+		if (TargetActor.IsValid()) return;
+		if (IsMovementBlocked()) return;
 	
-	ASC->AbilityInputTagReleased(InputTag);
+		if (FollowTime <= ShortPressThreshold)
+		{
+			UNavigationPath* NavigationPath = UNavigationSystemV1::FindPathToLocationSynchronously(
+				GetWorld(), GetPawn()->GetActorLocation(), CachedDestination);
+
+			if (NavigationPath && NavigationPath->PathPoints.Num() > 0)
+			{
+				Spline->ClearSplinePoints();
+
+				for (const FVector& Point : NavigationPath->PathPoints)
+				{
+					Spline->AddSplinePoint(Point, ESplineCoordinateSpace::World);
+				}
+
+				CachedDestination = NavigationPath->PathPoints.Last();
+
+				bAutoRunning = true;
+			}
+		}
+
+		FollowTime = 0.f;
+	}
 }
 
 void APDBPlayerController::CursorTrace()
@@ -128,56 +190,6 @@ void APDBPlayerController::CursorTrace()
 	}
 }
 
-void APDBPlayerController::OnInputPressed()
-{
-	FollowTime = 0.f;
-	bAutoRunning = false;
-}
-
-void APDBPlayerController::OnInputHeld()
-{
-	if (IsMovementBlocked()) return;
-	
-	FollowTime += GetWorld()->GetDeltaSeconds();
-
-	if (CursorHit.bBlockingHit)
-	{
-		CachedDestination = CursorHit.ImpactPoint;
-		if (APawn* ControlledPawn = GetPawn())
-		{
-			const FVector WorldDir = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
-			ControlledPawn->AddMovementInput(WorldDir);
-		}
-	}
-}
-
-void APDBPlayerController::OnInputReleased()
-{
-	if (IsMovementBlocked()) return;
-	
-	if (FollowTime <= ShortPressThreshold)
-	{
-		UNavigationPath* NavigationPath = UNavigationSystemV1::FindPathToLocationSynchronously(
-			GetWorld(), GetPawn()->GetActorLocation(), CachedDestination);
-
-		if (NavigationPath && NavigationPath->PathPoints.Num() > 0)
-		{
-			Spline->ClearSplinePoints();
-
-			for (const FVector& Point : NavigationPath->PathPoints)
-			{
-				Spline->AddSplinePoint(Point, ESplineCoordinateSpace::World);
-			}
-
-			CachedDestination = NavigationPath->PathPoints.Last();
-
-			bAutoRunning = true;
-		}
-	}
-
-	FollowTime = 0.f;
-}
-
 void APDBPlayerController::AutoRun()
 {
 	if (IsMovementBlocked())
@@ -198,6 +210,31 @@ void APDBPlayerController::AutoRun()
 	if (DistanceToDestination <= AutoRunAcceptanceRadius)
 	{
 		bAutoRunning = false;
+	}
+}
+
+void APDBPlayerController::ChaseAndAutoAttack()
+{
+	if (!GetPawn()) return;
+			
+	float Distance = FVector::Dist(TargetActor->GetActorLocation(), GetPawn()->GetActorLocation());
+			
+	if (AttackRange < Distance)
+	{
+		if (IsMovementBlocked()) return;
+			
+		if (APawn* ControlledPawn = GetPawn())
+		{
+			const FVector WorldDir = (TargetActor->GetActorLocation() - ControlledPawn->GetActorLocation()).GetSafeNormal();
+			ControlledPawn->AddMovementInput(WorldDir);
+		}
+	}
+	else
+	{
+		UPDBAbilitySystemComponent* ASC = GetPDBAbilitySystemComponent();                                                                 
+		if (!ASC) return;                                               
+		ASC->AbilityInputTagHeld(FPDBGameplayTags::Get().InputTag_LMB);
+		TargetActor = nullptr;
 	}
 }
 

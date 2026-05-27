@@ -34,9 +34,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> ClickAction;
 	
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UPDBInputConfig> InputConfig;
@@ -44,13 +41,10 @@ protected:
 private:
 	UPROPERTY()
 	TObjectPtr<UPDBAbilitySystemComponent> AbilitySystemComponent;
-
-	void OnInputPressed();
-	void OnInputHeld();
-	void OnInputReleased();
-
+	
 	void CursorTrace();
 	void AutoRun();
+	void ChaseAndAutoAttack();
 	
 	bool IsMovementBlocked();
 
@@ -67,4 +61,8 @@ private:
 
 	IPDBEnemyInterface* LastActor = nullptr;
 	IPDBEnemyInterface* ThisActor = nullptr;
+	
+	TWeakObjectPtr<AActor> TargetActor = nullptr;
+	
+	float AttackRange = 150.f;
 };

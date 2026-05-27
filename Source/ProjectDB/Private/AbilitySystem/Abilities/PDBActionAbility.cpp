@@ -48,10 +48,33 @@ void UPDBActionAbility::OnGameplayEventReceived(FGameplayEventData Payload)
 	UPDBTargetType* TargetType = Container->TargetType;
 	if (!TargetType) return;
 	
-	SourceASC->ExecuteGameplayCue(CastCueTag);
+	AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (!Avatar) return;
+	
+	FGameplayCueParameters Params;
+	
+	switch (CueOrigin)
+	{
+	case EPDBCueOrigin::Caster:
+		Params.Location = Avatar->GetActorLocation();
+		break;
+		
+	case EPDBCueOrigin::Cursor:
+		Params.Location = CursorHit.ImpactPoint;
+		break;
+		
+	case EPDBCueOrigin::Custom:
+		Params.Location = GetCustomCueLocation();
+		break;
+		
+	default:
+		break;
+	}
+	
+	SourceASC->ExecuteGameplayCue(CastCueTag, Params);
 	
 	TArray<AActor*> TargetActors;
-	TargetType->ResolveTargets(GetAvatarActorFromActorInfo(), CursorHit, TargetActors);
+	TargetType->ResolveTargets(Avatar, CursorHit, TargetActors);
 	
 	for (TSubclassOf<UGameplayEffect> EffectClass : Container->EffectClasses)
 	{
@@ -99,7 +122,7 @@ void UPDBActionAbility::OnTargetDataReady(const FGameplayAbilityTargetDataHandle
 	Direction.Z = 0.f;
 	Avatar->SetActorRotation(Direction.GetSafeNormal().Rotation());
 	
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, "MontageTask", AbilityMontage, 1.5);
+	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, "MontageTask", AbilityMontage, 1.f);
 	MontageTask->OnCompleted.AddDynamic(this, &UPDBActionAbility::OnMontageCompleted);
 	MontageTask->OnInterrupted.AddDynamic(this, &UPDBActionAbility::OnMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UPDBActionAbility::OnMontageCancelled);

@@ -18,10 +18,12 @@ public:
 	FGameplayTag InputTag_W;
 	FGameplayTag InputTag_E;
 	FGameplayTag InputTag_R;
+	FGameplayTag InputTag_LMB;
 
 	FGameplayTag State_Block_Movement;
 	
 	FGameplayTag GameplayCue_SoulSiphon_Cast;
+	FGameplayTag GameplayCue_Subjugate_Cast;
 	
 private:
 	static FPDBGameplayTags GameplayTags;

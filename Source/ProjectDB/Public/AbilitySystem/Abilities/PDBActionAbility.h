@@ -18,14 +18,29 @@ struct FPDBEffectContainer
 	TArray<TSubclassOf<UGameplayEffect>> EffectClasses;
 };
 
+UENUM(BlueprintType)
+enum class EPDBCueOrigin : uint8
+{
+	Caster UMETA(DisplayName = "Caster"),
+	Cursor UMETA(DisplayName = "Cursor"),
+	Custom UMETA(DisplayName = "Custom")
+};
+
 UCLASS()
 class PROJECTDB_API UPDBActionAbility : public UPDBGameplayAbility
 {
 	GENERATED_BODY()
-
+	
+public:
 	UPDBActionAbility();
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	FVector GetCustomCueLocation();
+	
+	UPROPERTY(BlueprintReadOnly)
+	FHitResult CursorHit;
 	
 private:
 	UPROPERTY(EditAnywhere)
@@ -36,8 +51,9 @@ private:
 	
 	UPROPERTY(EditAnywhere)
 	FGameplayTag CastCueTag;
-
-	FHitResult CursorHit;
+	
+	UPROPERTY(EditAnywhere)
+	EPDBCueOrigin CueOrigin = EPDBCueOrigin::Caster;
 	
 	UFUNCTION()
 	void OnGameplayEventReceived(FGameplayEventData Payload);

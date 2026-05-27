@@ -22,6 +22,10 @@ void FPDBGameplayTags::InitializeNativeGameplayTags()
 		FName("InputTag.R"),
 		FString("R")
 	);
+	GameplayTags.InputTag_LMB = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("InputTag.LMB"),
+		FString("LMB")
+	);
 
 	GameplayTags.State_Block_Movement = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Block.Movement"),
@@ -31,5 +35,10 @@ void FPDBGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.GameplayCue_SoulSiphon_Cast = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("GameplayCue.SoulSiphon.Cast"),
 		FString("Casting SoulSiphon")
+		);
+	
+	GameplayTags.GameplayCue_Subjugate_Cast = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("GameplayCue.Subjugate.Cast"),
+		FString("Casting Subjugate")
 		);
 }
