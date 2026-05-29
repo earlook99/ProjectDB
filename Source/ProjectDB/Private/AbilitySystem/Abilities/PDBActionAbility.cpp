@@ -4,7 +4,7 @@
 #include "GameplayTags/PDBGameplayTags.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
-#include "AbilitySystem/AbilityTasks/PDBTargetDataUnderCursor.h"
+#include "AbilitySystem/AbilityTasks/PDBWaitTargetData.h"
 #include "AbilitySystem/TargetType/PDBTargetType.h"
 #include "Character/PDBCharacterBase.h"
 
@@ -24,7 +24,7 @@ void UPDBActionAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	UPDBTargetDataUnderCursor* TargetTask = UPDBTargetDataUnderCursor::WaitTargetDataUnderCursor(this);
+	UPDBWaitTargetData* TargetTask = UPDBWaitTargetData::WaitTargetData(this, AcquireMode);
 	TargetTask->ValidData.AddDynamic(this, &UPDBActionAbility::OnTargetDataReady);
 	TargetTask->ReadyForActivation();
 }
@@ -109,9 +109,12 @@ void UPDBActionAbility::OnMontageCancelled()
 void UPDBActionAbility::OnTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetDataHandle)
 {
 	const FGameplayAbilityTargetData* TargetData = TargetDataHandle.Get(0);
-	if (!TargetData) return;
+	if (!TargetData || !TargetData->HasHitResult())
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
 	
-	if (!TargetData->HasHitResult()) return;
 	const FHitResult* HitResult = TargetData->GetHitResult();
 	CursorHit = *HitResult;
 
@@ -128,7 +131,8 @@ void UPDBActionAbility::OnTargetDataReady(const FGameplayAbilityTargetDataHandle
 	MontageTask->OnCancelled.AddDynamic(this, &UPDBActionAbility::OnMontageCancelled);
 	MontageTask->ReadyForActivation();
 	
-	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag(FName("Event.Montage.Hit")));
+	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag(FName("Event.Montage.Hit")), nullptr, 
+	true);
 	EventTask->EventReceived.AddDynamic(this, &UPDBActionAbility::OnGameplayEventReceived);
 	EventTask->ReadyForActivation();
 }

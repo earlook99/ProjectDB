@@ -2,8 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Abilities/PDBGameplayAbility.h"
+#include "AbilitySystem/AbilityTasks/PDBWaitTargetData.h"
 #include "PDBActionAbility.generated.h"
 
+enum class EPDBAcquireMode : uint8;
 class UPDBTargetType;
 
 USTRUCT(BlueprintType)
@@ -55,6 +57,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	EPDBCueOrigin CueOrigin = EPDBCueOrigin::Caster;
 	
+	UPROPERTY(EditAnywhere)
+	EPDBAcquireMode AcquireMode = EPDBAcquireMode::Cursor;
+
 	UFUNCTION()
 	void OnGameplayEventReceived(FGameplayEventData Payload);
 

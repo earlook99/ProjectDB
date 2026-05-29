@@ -23,6 +23,8 @@ public:
 	virtual void PlayerTick(float DeltaTime) override;
 	
 	UPDBAbilitySystemComponent* GetPDBAbilitySystemComponent();
+	
+	TWeakObjectPtr<AActor> GetTargetActor() const;
 
 protected:
 	virtual void BeginPlay() override;

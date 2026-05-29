@@ -77,6 +77,11 @@ UPDBAbilitySystemComponent* APDBPlayerController::GetPDBAbilitySystemComponent()
 	return AbilitySystemComponent;
 }
 
+TWeakObjectPtr<AActor> APDBPlayerController::GetTargetActor() const
+{
+	return TargetActor;
+}
+
 void APDBPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
 	if (!InputTag.MatchesTagExact(FPDBGameplayTags::Get().InputTag_LMB))
