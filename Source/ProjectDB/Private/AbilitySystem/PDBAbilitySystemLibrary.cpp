@@ -4,6 +4,7 @@
 #include "AbilitySystemComponent.h"
 #include "Game/PDBGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/Actor.h"
 
 namespace
 {
@@ -43,4 +44,17 @@ void UPDBAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* WorldC
 	ApplyEffectToSelf(ASC, CharacterClassInfo->PrimaryAttributes, 1.f);
 	ApplyEffectToSelf(ASC, CharacterClassInfo->SecondaryAttributes, 1.f);
 	ApplyEffectToSelf(ASC, CharacterClassInfo->VitalAttributes, 1.f);
+}
+
+FVector UPDBAbilitySystemLibrary::ComputeKnockback(const AActor* Source, const AActor* Target, float Magnitude)
+{
+	if (!Source || !Target) return FVector::ZeroVector;
+	
+	FVector Offset = (Target->GetActorLocation() - Source->GetActorLocation());
+	Offset.Z = 0.f;
+	
+	FVector KnockbackVector = Offset.GetSafeNormal() * Magnitude;
+	KnockbackVector.Z = 100.f;
+	
+	return KnockbackVector;
 }

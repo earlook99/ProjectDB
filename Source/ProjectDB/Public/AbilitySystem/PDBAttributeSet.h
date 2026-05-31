@@ -21,6 +21,8 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
 	/*
 	 * Primary Attributes — GE_DefaultPrimary로 직접 주입되는 입력값
 	 */

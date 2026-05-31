@@ -1,6 +1,7 @@
 #include "AbilitySystem/PDBAttributeSet.h"
 
 #include "Net/UnrealNetwork.h"
+#include "GameplayEffectExtension.h"
 
 UPDBAttributeSet::UPDBAttributeSet()
 {
@@ -20,6 +21,16 @@ void UPDBAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UPDBAttributeSet, Health, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPDBAttributeSet, Mana, COND_None, REPNOTIFY_Always);
+}
+
+void UPDBAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+	
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+	}
 }
 
 void UPDBAttributeSet::OnRep_Strength(const FGameplayAttributeData& OldStrength) const
