@@ -125,6 +125,8 @@ void UPDBActionAbility::OnTargetDataReady(const FGameplayAbilityTargetDataHandle
 	Direction.Z = 0.f;
 	Avatar->SetActorRotation(Direction.GetSafeNormal().Rotation());
 	
+	ReceivePerformAbility();
+	
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, "MontageTask", AbilityMontage, 1.f);
 	MontageTask->OnCompleted.AddDynamic(this, &UPDBActionAbility::OnMontageCompleted);
 	MontageTask->OnInterrupted.AddDynamic(this, &UPDBActionAbility::OnMontageInterrupted);

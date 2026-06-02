@@ -41,6 +41,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	FVector GetCustomCueLocation();
 	
+	UFUNCTION(BlueprintImplementableEvent)
+	void ReceivePerformAbility();
+	
 	UPROPERTY(BlueprintReadOnly)
 	FHitResult CursorHit;
 	
