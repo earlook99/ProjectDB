@@ -2,6 +2,7 @@
 
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
+#include "Interaction/PDBCombatInterface.h"
 
 UPDBAttributeSet::UPDBAttributeSet()
 {
@@ -30,6 +31,22 @@ void UPDBAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+	}
+	
+	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+	{
+		float CurrentDamage = GetDamage();
+		SetDamage(0.f);
+		SetHealth(FMath::Clamp(GetHealth() - CurrentDamage, 0.f, GetMaxHealth()));
+		UE_LOG(LogTemp, Warning, TEXT("Incoming Damage: %.1f, Health: %.1f"), CurrentDamage, GetHealth());
+		
+		if (GetHealth() <= 0.f)
+		{
+			IPDBCombatInterface* CombatInterface = Cast<IPDBCombatInterface>(Data.Target.AbilityActorInfo->AvatarActor.Get());
+			if (!CombatInterface) return;
+			
+			CombatInterface->Die();
+		}
 	}
 }
 

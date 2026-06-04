@@ -4,6 +4,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystem/PDBAbilitySystemComponent.h"
+#include "Interaction/PDBCombatInterface.h"
 #include "PDBCharacterBase.generated.h"
 
 class UPDBGameplayAbility;
@@ -12,7 +13,7 @@ class UAttributeSet;
 class UGameplayAbility;
 
 UCLASS(Abstract)
-class PROJECTDB_API APDBCharacterBase : public ACharacter, public IAbilitySystemInterface
+class PROJECTDB_API APDBCharacterBase : public ACharacter, public IAbilitySystemInterface, public IPDBCombatInterface
 {
 	GENERATED_BODY()
 
@@ -21,6 +22,11 @@ public:
 
 	virtual UPDBAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+	
+	virtual void Die() override;
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastHandleDeath();
 
 protected:
 	virtual void BeginPlay() override;

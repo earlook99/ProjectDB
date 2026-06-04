@@ -1,6 +1,7 @@
 #include "Character/PDBEnemy.h"
 
 #include "AbilitySystem/PDBAbilitySystemComponent.h"
+#include "AbilitySystem/PDBAbilitySystemLibrary.h"
 #include "AbilitySystem/PDBAttributeSet.h"
 #include "ProjectDB/ProjectDB.h"
 
@@ -20,6 +21,9 @@ void APDBEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	
+	if (!HasAuthority()) return;
+	UPDBAbilitySystemLibrary::InitializeDefaultAttributes(this, AbilitySystemComponent);
 }
 
 void APDBEnemy::HighlightActor()
