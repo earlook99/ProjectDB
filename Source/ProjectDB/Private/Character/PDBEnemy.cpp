@@ -3,7 +3,9 @@
 #include "AbilitySystem/PDBAbilitySystemComponent.h"
 #include "AbilitySystem/PDBAbilitySystemLibrary.h"
 #include "AbilitySystem/PDBAttributeSet.h"
+#include "Components/WidgetComponent.h"
 #include "ProjectDB/ProjectDB.h"
+#include "UI/Widget/PDBUserWidget.h"
 
 APDBEnemy::APDBEnemy()
 {
@@ -14,6 +16,9 @@ APDBEnemy::APDBEnemy()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
 	AttributeSet = CreateDefaultSubobject<UPDBAttributeSet>(TEXT("AttributeSet"));
+	
+	HealthBar = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
+	HealthBar->SetupAttachment(GetRootComponent());
 }
 
 void APDBEnemy::BeginPlay()
@@ -22,8 +27,30 @@ void APDBEnemy::BeginPlay()
 
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	
+	UPDBUserWidget* UserWidget = Cast<UPDBUserWidget>(HealthBar->GetUserWidgetObject());
+	if (UserWidget)
+	{
+		UserWidget->SetWidgetController(this);
+	}
+	
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UPDBAttributeSet::GetHealthAttribute()).AddLambda(
+		[this](const FOnAttributeChangeData& Data)
+		{
+			OnHealthChanged.Broadcast(Data.NewValue);
+		});
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UPDBAttributeSet::GetMaxHealthAttribute()).AddLambda(
+		[this](const FOnAttributeChangeData& Data)
+		{
+			OnMaxHealthChanged.Broadcast(Data.NewValue);
+		});
+	
 	if (!HasAuthority()) return;
 	UPDBAbilitySystemLibrary::InitializeDefaultAttributes(this, AbilitySystemComponent);
+	
+	UPDBAttributeSet* PDBAttributeSet = Cast<UPDBAttributeSet>(AttributeSet.Get());
+	
+	OnHealthChanged.Broadcast(PDBAttributeSet->GetHealth());
+	OnMaxHealthChanged.Broadcast(PDBAttributeSet->GetMaxHealth());
 }
 
 void APDBEnemy::HighlightActor()
