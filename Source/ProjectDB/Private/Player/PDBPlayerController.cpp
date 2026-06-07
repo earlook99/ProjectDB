@@ -11,8 +11,11 @@
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
 #include "AbilitySystem/PDBAbilitySystemComponent.h"
+#include "Components/WidgetComponent.h"
+#include "GameFramework/Character.h"
 #include "GameplayTags/PDBGameplayTags.h"
 #include "Player/PDBPlayerState.h"
+#include "UI/PDBDamageTextComponent.h"
 
 APDBPlayerController::APDBPlayerController()
 {
@@ -80,6 +83,18 @@ UPDBAbilitySystemComponent* APDBPlayerController::GetPDBAbilitySystemComponent()
 TWeakObjectPtr<AActor> APDBPlayerController::GetTargetActor() const
 {
 	return TargetActor;
+}
+
+void APDBPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit)
+{
+	if (!TargetCharacter || !DamageTextComponentClass) return;
+	if (!IsLocalController()) return;
+	
+	UPDBDamageTextComponent* DamageTextComponent = NewObject<UPDBDamageTextComponent>(TargetCharacter, DamageTextComponentClass);
+	DamageTextComponent->RegisterComponent();
+	DamageTextComponent->AttachToComponent(TargetCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	DamageTextComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	DamageTextComponent->SetDamageText(DamageAmount, bBlockedHit, bCriticalHit);
 }
 
 void APDBPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)

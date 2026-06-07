@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "PDBPlayerController.generated.h"
 
+class UPDBDamageTextComponent;
 class UPDBAbilitySystemComponent;
 class UPDBInputConfig;
 class UInputAction;
@@ -25,6 +26,9 @@ public:
 	UPDBAbilitySystemComponent* GetPDBAbilitySystemComponent();
 	
 	TWeakObjectPtr<AActor> GetTargetActor() const;
+	
+	UFUNCTION(Client, Reliable)
+	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit);
 
 protected:
 	virtual void BeginPlay() override;
@@ -60,6 +64,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USplineComponent> Spline;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UPDBDamageTextComponent> DamageTextComponentClass;
 
 	IPDBEnemyInterface* LastActor = nullptr;
 	IPDBEnemyInterface* ThisActor = nullptr;

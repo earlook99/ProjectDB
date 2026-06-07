@@ -2,7 +2,9 @@
 
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
+#include "GameFramework/Character.h"
 #include "Interaction/PDBCombatInterface.h"
+#include "Player/PDBPlayerController.h"
 
 UPDBAttributeSet::UPDBAttributeSet()
 {
@@ -28,6 +30,9 @@ void UPDBAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 {
 	Super::PostGameplayEffectExecute(Data);
 	
+	FEffectProperties Props;
+	SetEffectProperties(Data, Props);
+	
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
@@ -40,14 +45,69 @@ void UPDBAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		SetHealth(FMath::Clamp(GetHealth() - CurrentDamage, 0.f, GetMaxHealth()));
 		UE_LOG(LogTemp, Warning, TEXT("Incoming Damage: %.1f, Health: %.1f"), CurrentDamage, GetHealth());
 		
+		ShowFloatingText(Props, CurrentDamage, false, false);
+
 		if (GetHealth() <= 0.f)
 		{
-			IPDBCombatInterface* CombatInterface = Cast<IPDBCombatInterface>(Data.Target.AbilityActorInfo->AvatarActor.Get());
+			IPDBCombatInterface* CombatInterface = Cast<IPDBCombatInterface>(Props.TargetAvatarActor);
 			if (!CombatInterface) return;
 			
 			CombatInterface->Die();
 		}
 	}
+}
+
+void UPDBAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& OutProperties) const
+{
+	OutProperties.ContextHandle = Data.EffectSpec.GetContext();
+	OutProperties.SourceASC = OutProperties.ContextHandle.GetOriginalInstigatorAbilitySystemComponent();
+
+	if (IsValid(OutProperties.SourceASC) && OutProperties.SourceASC->AbilityActorInfo.IsValid() && OutProperties.SourceASC->AbilityActorInfo->AvatarActor.IsValid())
+	{
+		OutProperties.SourceAvatarActor = OutProperties.SourceASC->AbilityActorInfo->AvatarActor.Get();
+		OutProperties.SourceController = OutProperties.SourceASC->AbilityActorInfo->PlayerController.Get();
+		if (OutProperties.SourceController == nullptr && OutProperties.SourceAvatarActor != nullptr)
+		{
+			if (const APawn* Pawn = Cast<APawn>(OutProperties.SourceAvatarActor))
+			{
+				OutProperties.SourceController = Pawn->GetController();
+			}
+		}
+		OutProperties.SourceCharacter = Cast<ACharacter>(OutProperties.SourceAvatarActor);
+	}
+
+	if (Data.Target.AbilityActorInfo.IsValid() && Data.Target.AbilityActorInfo->AvatarActor.IsValid())
+	{
+		OutProperties.TargetASC = &Data.Target;
+		OutProperties.TargetAvatarActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
+		OutProperties.TargetController = Data.Target.AbilityActorInfo->PlayerController.Get();
+		if (OutProperties.TargetController == nullptr && OutProperties.TargetAvatarActor != nullptr)
+		{
+			if (const APawn* Pawn = Cast<APawn>(OutProperties.TargetAvatarActor))
+			{
+				OutProperties.TargetController = Pawn->GetController();
+			}
+		}
+		OutProperties.TargetCharacter = Cast<ACharacter>(OutProperties.TargetAvatarActor);
+	}
+}
+
+void UPDBAttributeSet::ShowFloatingText(const FEffectProperties& Props, float DamageAmount, bool bBlockedHit, bool bCriticalHit) const
+{
+	if (Props.TargetCharacter == Props.SourceCharacter) return;
+
+	APDBPlayerController* SourcePC = Cast<APDBPlayerController>(Props.SourceController);
+	if (SourcePC)
+	{
+		SourcePC->ShowDamageNumber(DamageAmount, Props.TargetCharacter, bBlockedHit, bCriticalHit);
+	}
+
+	APDBPlayerController* TargetPC = Cast<APDBPlayerController>(Props.TargetController);
+	if (TargetPC)
+	{
+		TargetPC->ShowDamageNumber(DamageAmount, Props.TargetCharacter, bBlockedHit, bCriticalHit);
+	}
+	
 }
 
 void UPDBAttributeSet::OnRep_Strength(const FGameplayAttributeData& OldStrength) const

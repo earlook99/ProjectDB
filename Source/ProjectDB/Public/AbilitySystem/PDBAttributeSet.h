@@ -11,6 +11,40 @@
 	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+USTRUCT()
+struct FEffectProperties
+{
+	GENERATED_BODY()
+
+	FEffectProperties() {}
+	
+	FGameplayEffectContextHandle ContextHandle;
+	
+	UPROPERTY()
+	TObjectPtr<UAbilitySystemComponent> SourceASC;
+	
+	UPROPERTY()
+	TObjectPtr<UAbilitySystemComponent> TargetASC;
+	
+	UPROPERTY()
+	TObjectPtr<AActor> SourceAvatarActor;
+	
+	UPROPERTY()
+	TObjectPtr<AActor> TargetAvatarActor;
+	
+	UPROPERTY()
+	TObjectPtr<AController> SourceController;
+	
+	UPROPERTY()
+	TObjectPtr<AController> TargetController;
+	
+	UPROPERTY()
+	TObjectPtr<ACharacter> SourceCharacter;
+	
+	UPROPERTY()
+	TObjectPtr<ACharacter> TargetCharacter;
+};
+
 UCLASS()
 class PROJECTDB_API UPDBAttributeSet : public UAttributeSet
 {
@@ -22,6 +56,10 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	
+	void SetEffectProperties (const FGameplayEffectModCallbackData& Data, FEffectProperties& OutProperties) const;
+	
+	void ShowFloatingText(const FEffectProperties& Props, float DamageAmount, bool bBlockedHit, bool bCriticalHit) const;
 
 	/*
 	 * Primary Attributes — GE_DefaultPrimary로 직접 주입되는 입력값
