@@ -18,6 +18,9 @@ struct FPDBEffectContainer
 
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<UGameplayEffect>> EffectClasses;
+	
+	UPROPERTY(EditAnywhere)
+	FScalableFloat Damage;
 };
 
 UENUM(BlueprintType)

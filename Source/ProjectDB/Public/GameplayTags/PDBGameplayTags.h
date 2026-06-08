@@ -25,6 +25,8 @@ public:
 	FGameplayTag GameplayCue_SoulSiphon_Cast;
 	FGameplayTag GameplayCue_Subjugate_Cast;
 	
+	FGameplayTag Data_Damage;
+	
 private:
 	static FPDBGameplayTags GameplayTags;
 };

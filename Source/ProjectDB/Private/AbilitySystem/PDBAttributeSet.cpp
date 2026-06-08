@@ -2,6 +2,7 @@
 
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
+#include "AbilitySystem/PDBGameplayEffectContext.h"
 #include "GameFramework/Character.h"
 #include "Interaction/PDBCombatInterface.h"
 #include "Player/PDBPlayerController.h"
@@ -24,6 +25,10 @@ void UPDBAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UPDBAttributeSet, Health, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPDBAttributeSet, Mana, COND_None, REPNOTIFY_Always);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UPDBAttributeSet, Armor, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UPDBAttributeSet, ArmorPenetration, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UPDBAttributeSet, CriticalHitChance, COND_None, REPNOTIFY_Always);
 }
 
 void UPDBAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -45,7 +50,14 @@ void UPDBAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		SetHealth(FMath::Clamp(GetHealth() - CurrentDamage, 0.f, GetMaxHealth()));
 		UE_LOG(LogTemp, Warning, TEXT("Incoming Damage: %.1f, Health: %.1f"), CurrentDamage, GetHealth());
 		
-		ShowFloatingText(Props, CurrentDamage, false, false);
+		bool bCriticalHit = false;
+		
+		FPDBGameplayEffectContext* Context = static_cast<FPDBGameplayEffectContext*>(Props.ContextHandle.Get());
+		if (Context)
+		{
+			bCriticalHit = Context->IsCriticalHit();
+		}
+		ShowFloatingText(Props, CurrentDamage, false, bCriticalHit);
 
 		if (GetHealth() <= 0.f)
 		{
@@ -149,3 +161,19 @@ void UPDBAttributeSet::OnRep_Mana(const FGameplayAttributeData& OldMana) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UPDBAttributeSet, Mana, OldMana);
 }
+
+void UPDBAttributeSet::OnRep_Armor(const FGameplayAttributeData& OldArmor) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPDBAttributeSet, Armor, OldArmor);
+}
+
+void UPDBAttributeSet::OnRep_ArmorPenetration(const FGameplayAttributeData& OldArmorPenetration) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPDBAttributeSet, ArmorPenetration, OldArmorPenetration);
+}
+
+void UPDBAttributeSet::OnRep_CriticalHitChance(const FGameplayAttributeData& OldCriticalHitChance) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPDBAttributeSet, CriticalHitChance, OldCriticalHitChance);
+}
+

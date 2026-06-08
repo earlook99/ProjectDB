@@ -41,4 +41,9 @@ void FPDBGameplayTags::InitializeNativeGameplayTags()
 		FName("GameplayCue.Subjugate.Cast"),
 		FString("Casting Subjugate")
 		);
+	
+	GameplayTags.Data_Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Data.Damage"),
+		FString("SetByCaller Damage Amount")
+		);
 }

@@ -79,7 +79,8 @@ void UPDBActionAbility::OnGameplayEventReceived(FGameplayEventData Payload)
 	for (TSubclassOf<UGameplayEffect> EffectClass : Container->EffectClasses)
 	{
 		FGameplayEffectSpecHandle Handle = MakeOutgoingGameplayEffectSpec(EffectClass, GetAbilityLevel());
-		
+		Handle.Data->SetSetByCallerMagnitude(FPDBGameplayTags::Get().Data_Damage, Container->Damage.GetValueAtLevel(GetAbilityLevel()));
+
 		for (AActor* Actor : TargetActors)
 		{
 			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
