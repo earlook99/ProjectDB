@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerState.h"
 #include "PDBPlayerState.generated.h"
 
+class UPDBInventoryComponent;
 class UAbilitySystemComponent;
 class UAttributeSet;
 
@@ -18,6 +19,8 @@ public:
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+	
+	UPDBInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 
 protected:
 	UPROPERTY()
@@ -25,4 +28,7 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
+	
+	UPROPERTY()
+	TObjectPtr<UPDBInventoryComponent> InventoryComponent;
 };

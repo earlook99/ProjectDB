@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/PDBAbilitySystemComponent.h"
 #include "AbilitySystem/PDBAttributeSet.h"
+#include "Inventory/PDBInventoryComponent.h"
 
 APDBPlayerState::APDBPlayerState()
 {
@@ -10,6 +11,8 @@ APDBPlayerState::APDBPlayerState()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject<UPDBAttributeSet>(TEXT("AttributeSet"));
+
+	InventoryComponent = CreateDefaultSubobject<UPDBInventoryComponent>(TEXT("InventoryComponent"));
 
 	SetNetUpdateFrequency(100.0f);
 }
