@@ -3,6 +3,7 @@
 #include "AbilitySystem/PDBAbilitySystemComponent.h"
 #include "AbilitySystem/PDBAttributeSet.h"
 #include "Inventory/PDBInventoryComponent.h"
+#include "Inventory/PDBEquipmentComponent.h"
 
 APDBPlayerState::APDBPlayerState()
 {
@@ -13,6 +14,7 @@ APDBPlayerState::APDBPlayerState()
 	AttributeSet = CreateDefaultSubobject<UPDBAttributeSet>(TEXT("AttributeSet"));
 
 	InventoryComponent = CreateDefaultSubobject<UPDBInventoryComponent>(TEXT("InventoryComponent"));
+	EquipmentComponent = CreateDefaultSubobject<UPDBEquipmentComponent>(TEXT("EquipmentComponent"));
 
 	SetNetUpdateFrequency(100.0f);
 }

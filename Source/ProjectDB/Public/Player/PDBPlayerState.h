@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerState.h"
 #include "PDBPlayerState.generated.h"
 
+class UPDBEquipmentComponent;
 class UPDBInventoryComponent;
 class UAbilitySystemComponent;
 class UAttributeSet;
@@ -31,4 +32,7 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UPDBInventoryComponent> InventoryComponent;
+	
+	UPROPERTY()
+	TObjectPtr<UPDBEquipmentComponent> EquipmentComponent;
 };
